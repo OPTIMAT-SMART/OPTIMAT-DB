@@ -2,7 +2,7 @@
 sanic
 sanic-cors
 sanic-testing
-
+dotenv
 # Database
 psycopg2-binary
 pytz

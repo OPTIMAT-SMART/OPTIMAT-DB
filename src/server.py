@@ -1,11 +1,8 @@
 """
 OPTIMAT Backend Server
 -------------------
-This module provides the main server implementation for the OPTIMAT Backend Server
-backend. It handles mode selection requests and provides transportation service matching.
-
-Usage:
-    python server.py [--host HOST] [--port PORT] [--debug]
+This module provides the main server implementation for the OPTIMAT Backend Server.
+It handles provider matching requests based on environment configuration.
 """
 
 from datetime import datetime
@@ -13,9 +10,7 @@ from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 from psycopg2.extras import RealDictCursor
-import argparse
 import os
-from dotenv import load_dotenv
 
 from sanic import Sanic, response
 from sanic.request import Request
@@ -24,16 +19,21 @@ from sanic_cors import CORS
 
 from src.services.provider_matcher import find_matching_providers, ProviderMatchError
 
-# Load environment variables
-load_dotenv()
+# Server configuration
+SERVER_CONFIG = {
+    'host': os.getenv('SERVER_HOST', '0.0.0.0'),
+    'port': int(os.getenv('SERVER_PORT', '8000')),
+    'debug': os.getenv('DEBUG', 'false').lower() == 'true',
+    'workers': int(os.getenv('WORKERS', '1'))
+}
 
 # Database configuration
 DB_CONFIG = {
-    'dbname': os.getenv('DB_NAME', 'postgres'),
-    'user': os.getenv('DB_USER', 'postgres.nqqantwjzbymdjqcpkgo'),
-    'password': os.getenv('DB_PASSWORD', 'qMApr1v8VCgY552w'),
-    'host': os.getenv('DB_HOST', 'aws-0-us-west-1.pooler.supabase.com'),
-    'port': os.getenv('DB_PORT', '6543'),
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
 }
 
 # Create the Sanic app
@@ -50,8 +50,7 @@ db_pool = None
 async def setup_db(app, loop):
     """Initialize database connection pool before server starts"""
     global db_pool
-    args = parse_args()
-    app.config.USE_MOCK = args.mock
+    app.config.USE_MOCK = True  # Always use mock database for now
     db_pool = SimpleConnectionPool(
         minconn=1,
         maxconn=10,
@@ -209,40 +208,10 @@ async def provider_match(request: Request) -> JSONResponse:
         if conn:
             release_db(conn)
 
-def parse_args():
-    """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='OPTIMAT Backend Server')
-    parser.add_argument('--host', 
-                       default=os.getenv('SERVER_HOST', '0.0.0.0'),
-                       help='Host to run the server on')
-    parser.add_argument('--port', 
-                       type=int, 
-                       default=int(os.getenv('SERVER_PORT', '8000')),
-                       help='Port to run the server on')
-    parser.add_argument('--debug', 
-                       action='store_true',
-                       default=os.getenv('DEBUG', 'true').lower() == 'true',
-                       help='Run in debug mode')
-    parser.add_argument('--workers', 
-                       type=int,
-                       default=int(os.getenv('WORKERS', '1')),
-                       help='Number of worker processes')
-    parser.add_argument('--mock',
-                       action='store_true',
-                       default=True,
-                       help='Use mock database')
-    return parser.parse_args()
-
 if __name__ == '__main__':
-    args = parse_args()
-    
-
-    
-    # Run the server
     app.run(
-        host=args.host,
-        port=args.port,
-        debug=args.debug,
-        workers=args.workers,
-        access_log=args.debug
+        host=SERVER_CONFIG['host'],
+        port=SERVER_CONFIG['port'],
+        workers=SERVER_CONFIG['workers'],
+        debug=SERVER_CONFIG['debug']
     )
