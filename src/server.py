@@ -11,11 +11,13 @@ import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 from psycopg2.extras import RealDictCursor
 import os
+import json
 
 from sanic import Sanic, response
 from sanic.request import Request
 from sanic.response import JSONResponse
 from sanic_cors import CORS
+from sanic.exceptions import NotFound
 
 from src.services.provider_matcher import find_matching_providers, ProviderMatchError
 
@@ -204,6 +206,83 @@ async def provider_match(request: Request) -> JSONResponse:
             'error_code': 'UNEXPECTED_ERROR'
         }, 500)
     
+    finally:
+        if conn:
+            release_db(conn)
+
+@app.route('/api/json/<provider_id>', methods=['GET'])
+async def get_service_zone_json(request: Request, provider_id: str) -> JSONResponse:
+    """Fetch and return the JSON file associated with a provider's service zone."""
+    conn = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Determine which table to use
+        table = 'providers_mock' if request.app.config.USE_MOCK else 'providers'
+        
+        # Query the service_zone for the given provider_id
+        cur.execute(f"SELECT service_zone FROM atccc.{table} WHERE provider_id = %s", (provider_id,))
+        result = cur.fetchone()
+        
+        if not result or not result['service_zone']:
+            raise NotFound(f"No service zone found for provider ID: {provider_id}")
+            
+        # Return the JSON data
+        return json_res({
+            'status': 'SUCCESS',
+            'data': result['service_zone'],
+            'provider_id': provider_id
+        })
+            
+    except psycopg2.Error as e:
+        raise DatabaseError(f"Database query failed: {e.pgerror}")
+        
+    except NotFound as e:
+        return json_res({
+            'status': 'NOT_FOUND',
+            'error': str(e),
+            'error_code': 'PROVIDER_NOT_FOUND'
+        }, 404)
+        
+    finally:
+        if conn:
+            release_db(conn)
+
+@app.route('/api/providers', methods=['GET'])
+async def get_all_providers(request: Request) -> JSONResponse:
+    """Return a list of all providers with their full details."""
+    conn = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Determine which table to use
+        table = 'providers_mock' if request.app.config.USE_MOCK else 'providers'
+        
+        # Query all provider data
+        cur.execute(f"SELECT * FROM atccc.{table} ORDER BY provider_id")
+        results = cur.fetchall()
+        
+        if not results:
+            return json_res({
+                'status': 'SUCCESS',
+                'data': [],
+                'message': 'No providers found'
+            })
+            
+        # Format the results - return all columns as-is
+        providers = [dict(row) for row in results]
+        
+        return json_res({
+            'status': 'SUCCESS',
+            'data': providers,
+            'message': f"Found {len(providers)} providers"
+        })
+            
+    except psycopg2.Error as e:
+        raise DatabaseError(f"Database query failed: {e.pgerror}")
+        
     finally:
         if conn:
             release_db(conn)
