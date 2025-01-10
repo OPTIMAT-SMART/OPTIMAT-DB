@@ -1,0 +1,20 @@
+# Web Framework
+sanic
+sanic-cors
+sanic-testing
+
+# Database
+psycopg2-binary
+pytz
+geopy
+shapely
+
+# Testing
+pytest
+pytest-asyncio>=0.25.0
+pytest-cov
+
+# Development
+black
+flake8
+mypy
