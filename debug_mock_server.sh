@@ -24,4 +24,4 @@ echo "Using Mock Database: true"
 echo "--------------------------------"
 
 # Run the server
-python src/server.py --debug --mock --workers 1
+python src/server.py --debug --mock --workers 4

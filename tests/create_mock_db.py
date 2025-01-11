@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 import random
 import json
+from src.utils.config import config
 
 # Sample phone numbers
 PHONE_NUMBERS = [

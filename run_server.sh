@@ -15,8 +15,8 @@ echo "Starting OPTIMAT Backend Server..."
 echo "--------------------------------"
 echo "Host: ${SERVER_HOST}"
 echo "Port: ${SERVER_PORT}"
-echo "Debug: ${DEBUG}"
-echo "Workers: ${WORKERS}"
+echo "Debug: ${SERVER_DEBUG}"
+echo "Workers: ${SERVER_WORKERS}"
 echo "--------------------------------"
 
 # Run the server
