@@ -7,7 +7,6 @@ Script to create and populate mock database tables for testing.
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
-from dotenv import load_dotenv
 import random
 import json
 from src.utils.config import config
@@ -288,9 +287,6 @@ def generate_random_service_hours():
 
 def main():
     """Main function to create and populate mock database"""
-    # Load environment variables
-    load_dotenv()
-    
     # Database connection parameters
     db_params = {
         'dbname': os.getenv('DB_NAME', 'optimat'),
