@@ -1,9 +1,9 @@
 from datetime import datetime
 import pytz
 from shapely.geometry import Point, Polygon
-from geopy.geocoders import Nominatim
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from ..utils.geocoding import geocode_address
 
 # Database connection parameters
 DB_CONFIG = {
@@ -94,27 +94,17 @@ def check_time_match(service_hours: dict, dep_time: str, ret_time: str) -> bool:
         print(f"Error in check_time_match: {e}")
         return False
 
-def check_area_match(service_zone: dict, org_addr: str, dest_addr: str) -> bool:
-    """Check if addresses are within provider's service zone"""
+async def check_area_match(service_zone: dict, org_coords: tuple, dest_coords: tuple) -> bool:
+    """Check if coordinates fall within service zone"""
     try:
-        if not service_zone:
+        if not service_zone or not org_coords or not dest_coords:
             return False
             
         coordinates = service_zone['features'][0]['geometry']['coordinates']
         polygon = Polygon(coordinates[0])
         
-        geolocator = Nominatim(user_agent="optimat_app")
-        
-        # Geocode addresses
-        org_location = geolocator.geocode(org_addr)
-        dest_location = geolocator.geocode(dest_addr)
-        
-        if not org_location or not dest_location:
-            return False
-        
-        # Check if points are within service zone
-        org_point = Point(org_location.longitude, org_location.latitude)
-        dest_point = Point(dest_location.longitude, dest_location.latitude)
+        org_point = Point(*org_coords)
+        dest_point = Point(*dest_coords)
         
         return polygon.contains(org_point) and polygon.contains(dest_point)
         

@@ -10,8 +10,8 @@ from psycopg2.extensions import cursor
 from datetime import datetime
 import pytz
 
-# Update import path to utils directory
 from ..utils.matching import check_time_match, check_area_match
+from ..utils.geocoding import geocode_address
 
 class ProviderMatchError(Exception):
     """Base class for provider matching errors"""
@@ -52,39 +52,52 @@ def find_matching_providers(cur: cursor, req: Dict, table: str = 'providers') ->
                 }
             )
         
-        # Get all provider IDs
+        # Geocode addresses once at the start
+        org_coords = geocode_address(req['originAddress'])
+        dest_coords = geocode_address(req['destinationAddress'])
+        
+        if not org_coords or not dest_coords:
+            raise ProviderMatchError(
+                "Could not geocode one or both addresses",
+                "GEOCODING_ERROR",
+                {
+                    'origin': req['originAddress'],
+                    'destination': req['destinationAddress']
+                }
+            )
+        
+        # Get all provider data in one query
         cur.execute(f"""
-            SELECT DISTINCT provider_id 
-            FROM atccc.{table} 
+            SELECT provider_id, provider_name, provider_type, service_hours, service_zone
+            FROM atccc.{table}
             WHERE provider_id IS NOT NULL
         """)
-        provider_ids = [r['provider_id'] for r in cur.fetchall() if r['provider_id']]
+        providers = cur.fetchall()
         
-        if not provider_ids:
+        if not providers:
             raise ProviderMatchError(
                 "No providers found in the system",
                 "NO_PROVIDERS"
             )
         
         matching_providers = []
-        for provider_id in provider_ids:
+        for provider in providers:
             try:
-                if _check_provider_matches(cur, provider_id, req, table):
-                    # Get provider info
-                    cur.execute(f"""
-                        SELECT provider_name, provider_type 
-                        FROM atccc.{table} 
-                        WHERE provider_id = %s
-                    """, (provider_id,))
-                    provider_info = cur.fetchone()
-                    if provider_info:
-                        matching_providers.append({
-                            "ID": provider_id,
-                            "Provider": provider_info['provider_name'],
-                            "Type": provider_info['provider_type']
-                        })
+                # Check time match
+                if not check_time_match(provider['service_hours'], req['departureTime'], req['returnTime']):
+                    continue
+                    
+                # Check area match with pre-geocoded coordinates
+                if not check_area_match(provider['service_zone'], org_coords, dest_coords):
+                    continue
+                    
+                matching_providers.append({
+                    "ID": provider['provider_id'],
+                    "Provider": provider['provider_name'],
+                    "Type": provider['provider_type']
+                })
             except Exception as e:
-                print(f"Error checking provider {provider_id}: {e}")
+                print(f"Error checking provider {provider['provider_id']}: {e}")
                 continue
         
         if not matching_providers:
