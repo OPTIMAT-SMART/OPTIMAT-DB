@@ -10,14 +10,8 @@ fi
 # Add src directory to Python path
 export PYTHONPATH="${PYTHONPATH}:${PWD}"
 
-# Print startup configuration
-echo "Starting OPTIMAT Backend Server..."
-echo "--------------------------------"
-echo "Host: ${SERVER_HOST}"
-echo "Port: ${SERVER_PORT}"
-echo "Debug: ${SERVER_DEBUG}"
-echo "Workers: ${SERVER_WORKERS}"
-echo "--------------------------------"
+# Set mock database flag
+export USE_MOCK_DB=true
 
 # Run the server
-python src/server.py 
+python src/server.py --debug --mock  

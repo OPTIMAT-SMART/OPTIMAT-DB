@@ -46,12 +46,7 @@ async def find_matching_providers(conn, req: Dict[str, Any], table: str = 'provi
 
         # Fetch all providers in one query
         query = f"""
-            SELECT 
-                provider_id,
-                provider_name,
-                provider_type,
-                service_hours,
-                service_zone
+            SELECT *
             FROM {config.DB_SCHEMA}.{table}
             WHERE provider_id IS NOT NULL
               AND service_zone IS NOT NULL
@@ -82,11 +77,7 @@ async def find_matching_providers(conn, req: Dict[str, Any], table: str = 'provi
                 ):
                     continue
 
-                matching_providers.append({
-                    "ID": provider_dict['provider_id'],
-                    "Provider": provider_dict['provider_name'],
-                    "Type": provider_dict['provider_type']
-                })
+                matching_providers.append(provider_dict)
 
             except Exception as e:
                 print(f"Error checking provider {provider['provider_id']}: {e}")
