@@ -255,7 +255,7 @@ def copy_provider_data(cur):
 
 def generate_random_service_hours():
     """Generate random service hours in the required format"""
-    num_schedules = random.randint(1, 3)  # Generate 1-3 schedule entries
+    num_schedules = 1
     hours = []
     
     for _ in range(num_schedules):

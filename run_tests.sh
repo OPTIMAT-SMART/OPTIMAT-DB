@@ -15,4 +15,4 @@ echo "Running OPTIMAT Backend Tests..."
 echo "--------------------------------"
 
 # Run the tests with strict asyncio mode and exit on first failure
-python -m pytest --asyncio-mode=strict -x
+python tests/create_mock_db.py

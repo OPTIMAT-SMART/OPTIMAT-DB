@@ -75,12 +75,12 @@ async def find_matching_providers(conn, req: Dict[str, Any], table: str = 'provi
                 ):
                     continue
 
-                # if not await check_area_match(
-                #     provider_dict['service_zone'],
-                #     origin_coords,
-                #     destination_coords
-                # ):
-                #     continue
+                if not await check_area_match(
+                    provider_dict['service_zone'],
+                    origin_coords,
+                    destination_coords
+                ):
+                    continue
 
                 matching_providers.append({
                     "ID": provider_dict['provider_id'],
