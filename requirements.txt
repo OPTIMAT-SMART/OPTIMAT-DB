@@ -27,3 +27,11 @@ mypy
 
 # Utilities
 requests
+
+# Chat/LLM Dependencies
+langchain
+langchain-core
+langchain-openai
+langchain-anthropic
+langgraph
+anthropic

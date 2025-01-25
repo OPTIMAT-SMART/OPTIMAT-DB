@@ -36,6 +36,9 @@ class Config(BaseSettings):
     LOG_FORMAT: str = Field(default='%(asctime)s - %(name)s - %(levelname)s - %(message)s', env='LOG_FORMAT')
     LOG_FILE: Optional[str] = Field(default=None, env='LOG_FILE')
 
+    # API Keys
+    ANTHROPIC_API_KEY: str = Field(default='', env='ANTHROPIC_API_KEY')
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
