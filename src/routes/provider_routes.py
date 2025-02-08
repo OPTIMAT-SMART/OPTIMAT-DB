@@ -60,7 +60,7 @@ def setup_provider_routes(blueprint: Blueprint) -> None:
                     req=validated_data,
                     table=table
                 )
-            
+                
             return success_response(
                 data=matches,
                 message=f"Found {len(matches)} matching providers"
@@ -73,8 +73,10 @@ def setup_provider_routes(blueprint: Blueprint) -> None:
                 details={'error': str(e)},
                 status=400
             )
-            
+                
         except ProviderMatchError as e:
+            if 'conn' in locals():
+                await database.pool.release(conn)
             return error_response(
                 message="Provider matching failed",
                 error_code=e.error_code,
@@ -83,6 +85,8 @@ def setup_provider_routes(blueprint: Blueprint) -> None:
             )
             
         except Exception as e:
+            if 'conn' in locals():
+                await database.pool.release(conn)
             return error_response(
                 message="Internal server error",
                 error_code='SERVER_ERROR',

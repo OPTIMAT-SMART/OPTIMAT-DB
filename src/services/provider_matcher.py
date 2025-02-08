@@ -83,13 +83,6 @@ async def find_matching_providers(conn, req: Dict[str, Any], table: str = 'provi
                 print(f"Error checking provider {provider['provider_id']}: {e}")
                 continue
 
-        if not matching_providers:
-            raise ProviderMatchError(
-                "No providers match the criteria",
-                "NO_MATCHES",
-                {'criteria': req}
-            )
-
         return matching_providers
 
     except ProviderMatchError:

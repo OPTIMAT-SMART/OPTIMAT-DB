@@ -25,8 +25,8 @@ class Database:
                 database=config.DB_NAME,
                 host=config.DB_HOST,
                 port=config.DB_PORT,
-                min_size=50,
-                max_size=500,
+                min_size=10,
+                max_size=100,
                 command_timeout=30,
                 max_inactive_connection_lifetime=300.0,
                 statement_cache_size=0  # Disable statement caching
