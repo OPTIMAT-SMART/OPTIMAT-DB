@@ -38,6 +38,12 @@ class Config(BaseSettings):
 
     # API Keys
     ANTHROPIC_API_KEY: str = Field(default='', env='ANTHROPIC_API_KEY')
+    GOOGLE_MAPS_API_KEY: str = Field(default='', env='GOOGLE_MAPS_API_KEY')
+
+    # AWS Configuration
+    AWS_ACCESS_KEY: str = Field(default='', env='AWS_ACCESS_KEY')
+    AWS_SECRET_KEY: str = Field(default='', env='AWS_SECRET_KEY')
+    AWS_REGION: str = Field(default='us-west-2', env='AWS_REGION')
 
     class Config:
         env_file = ".env"
